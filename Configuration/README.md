@@ -1,61 +1,144 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
+# Configuration
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## Enviroment Configuration (Cấu hình biến môi trường)
 
-## About Laravel
+Các thao tác về cấu hình môi trường -> file **.env** và các file ở thư mục config.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Retrieving Enviroment Configuration (Truy xuất cấu hình môi trường)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Tất cả các biến sẽ được loaded vào $_ENV PHP super-global khi ứng dụng nhận được yêu cầu
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Sử dụng **env** method -> truy xuất giá trị từ các biến trong file configuration.
 
-## Learning Laravel
+```php
+'debug' => env('APP_DEBUG', false),
+```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+* Tham số đầu tiến: tên cấu hình environment
+* THam số thứ 2: giá trị mặc định 
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Determining The Current Enviroment (Xác định môi trường hiện tại)
 
-## Laravel Sponsors
+Sử dụng **environment** method từ **App** facade:
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+```php
+$enviroment = App:enviroment();
+```
 
-### Premium Partners
+Kiểm tra môi trường hiện tại
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[OP.GG](https://op.gg)**
+```php
+if (App:environment('local')) {
+    // This is local enviroment
+}
 
-## Contributing
+if (App:enviroment(['local', 'staging'])) {
+    // The environment is either local OR staging ...
+}
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Hiding Environment Variables From Debug Pages (Ẩn cac biến môi trường từ trang debug)
 
-## Code of Conduct
+Khi có ngoại lệ chưa bị bắt và **APP_DEBUG** là true -> page hiển thị all biến môi trường và nội dung của chúng
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Để ẩn đi một số biến nhất định -> sử dụng **debug_hide** trong file config/app.php
 
-## Security Vulnerabilities
+Một số biến có sẵn trong environment và request data -> cần ẩn $_ENV và $_SERVER
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```php
+return [
 
-## License
+    // ...
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+    'debug_hide' => [
+        '_ENV' => [
+            'APP_KEY',
+            'DB_PASSWORD',
+        ],
+
+        '_SERVER' => [
+            'APP_KEY',
+            'DB_PASSWORD',
+        ],
+
+        '_POST' => [
+            'password',
+        ],
+    ],
+];
+```
+
+## Accessing Configuration Values (Truy cập giá trị cấu hình)
+
+Thông qua hàm **config()**
+
+```php
+$value = config('app.timezone'); // Lấy giá trị cấu hình timezone
+
+// Truy xuất giá trị mặc định nếu giá trị cấu hình không tồn tại
+$value = config('app.timezone', 'Asia/Seoul'); // 
+```
+
+Thay đổi giá trị cấu hình
+
+```php
+config(['app.timezone' => 'Asia/Ho_Chi_Minh']);
+```
+
+Chú thích : `app.timezone` là tham số trỏ đến config **timezone** ở file **config/app.php**
+
+## Configuration Caching
+
+Cho phép cache những cấu hình đã thiết lập lại
+
+```bash
+php artisan config:cache
+```
+
+Khi thực hiện lệnh này -> thay đổi file **.env** -> cấu hình vẫn giữ nguyên. Dùng khi chuẩn bị deploy dự án
+
+Nếu muốn thay đổi
+
+```bash
+php artisan cache:clear
+```
+
+## Maintenance mode (Chế độ bảo trì)
+
+Đôi khi hệ thống cũng cần được bảo trì -> run sẽ trả về page 503
+```bash
+php artisan down
+```
+
+Thêm thông báo và thời gian quay trờ lại hệ thống
+```bash
+php artisan down --message"Maintenancing..." --retry=3600
+```
+
+Trong lúc bảo trì có thể cho phép một số địa chỉ IP cụ thể truy cập được vào hệ thống
+```bash
+php artisan down --allow=127.0.0.1 --allow=192.168.0.0/1
+```
+
+Sử dụng **secret** để truy cập vào hệ thống đang bảo trì
+```bash
+php artisan down --secret="1630542a-246b-4b66-afa1-dd72a4c43515"
+```
+Tiếp theo điều hướng tối URL khới với mã thông báo -> đưa ra cookie bỏ qua chế độ bảo trì cho trình duyệt
+```
+https://example.com/1630542a-246b-4b66-afa1-dd72a4c43515
+```
+
+Chuyển hướng khi bảo trì
+```bash
+php artisan down --redirect=/
+```
+
+Bảo trì hoàn tất
+```bash
+php artisan up
+```
+
+
+
+

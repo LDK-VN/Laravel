@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,4 +14,12 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
+});
+
+Route::get('/debug', function(){
+    $_POST['password'] = '123';
+    DebugBar::info($object);
+Debugbar::error('Error!');
+Debugbar::warning('Watch out…');
+Debugbar::addMessage('Another message', 'mylabel');
 });
